@@ -1,4 +1,6 @@
 import express from 'express';
+import { connectDatabase } from './config/database.js';
+import { Activity, Leaderboard, Team, User, Workout } from './models/index.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 8000;
@@ -13,13 +15,18 @@ app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok' });
 });
 
-for (const resource of ['users', 'teams', 'activities', 'leaderboard', 'workouts']) {
-  app.get(`/api/${resource}/`, (_request, response) => {
-    response.json([]);
-  });
-}
+app.get('/api/users/', async (_request, response) => response.json(await User.find().lean()));
+app.get('/api/teams/', async (_request, response) => response.json(await Team.find().lean()));
+app.get('/api/activities/', async (_request, response) => response.json(await Activity.find().lean()));
+app.get('/api/leaderboard/', async (_request, response) => response.json(await Leaderboard.find().sort({ rank: 1 }).lean()));
+app.get('/api/workouts/', async (_request, response) => response.json(await Workout.find().lean()));
 
-app.listen(port, () => {
-  console.log(`OctoFit API listening on port ${port}`);
-  console.log(`API base URL: ${apiBaseUrl}`);
-});
+connectDatabase()
+  .then(() => app.listen(port, () => {
+    console.log(`OctoFit API listening on port ${port}`);
+    console.log(`API base URL: ${apiBaseUrl}`);
+  }))
+  .catch((error) => {
+    console.error('Error connecting to octofit_db:', error);
+    process.exit(1);
+  });
