@@ -9,6 +9,12 @@ app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok' });
 });
 
+for (const resource of ['users', 'teams', 'activities', 'leaderboard', 'workouts']) {
+  app.get(`/api/${resource}/`, (_request, response) => {
+    response.json([]);
+  });
+}
+
 app.listen(port, () => {
   console.log(`OctoFit API listening on port ${port}`);
 });
